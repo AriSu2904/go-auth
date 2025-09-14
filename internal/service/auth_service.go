@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/AriSu2904/go-auth/internal/dto"
 	"github.com/AriSu2904/go-auth/internal/models"
@@ -29,10 +30,14 @@ func NewAuthService(userRepo repository.UserRepository) AuthService {
 func (s *authService) SignUp(ctx context.Context, input *dto.RegisterUserInput) (*models.User, error) {
 	existingUser, err := s.userRepository.FindByEmail(ctx, input.Email)
 	if err != nil {
+		log.Println("Error checking existing user by email:", err)
+
 		return nil, err
 	}
 
 	if existingUser != nil {
+		log.Println("Error user already exist", err)
+
 		return nil, ErrUserExists
 	}
 
@@ -45,14 +50,16 @@ func (s *authService) SignUp(ctx context.Context, input *dto.RegisterUserInput) 
 		Email:              input.Email,
 		Persona:            input.Persona,
 		Password:           hashedPassword,
-		GoogleSynchronized: false,
-		IsVerified:         false,
-		Status:             "ACTIVE",
 		Role:               "USER",
+		Status:             "ACTIVE",
+		IsVerified:         false,
+		GoogleSynchronized: false,
 	}
 
 	err = s.userRepository.Create(ctx, newUser)
-	if err != nil {
+	if err != nil && err.Error() != "sql: no rows in result set" {
+		log.Println("Error occurred when create new user:", err)
+
 		return nil, err
 	}
 

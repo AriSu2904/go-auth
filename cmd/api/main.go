@@ -1,12 +1,14 @@
 package main
 
 import (
-	"database/sql"
 	"github.com/AriSu2904/go-auth/internal/config"
 	"github.com/AriSu2904/go-auth/internal/database"
+	"github.com/AriSu2904/go-auth/internal/handler"
 	"github.com/AriSu2904/go-auth/internal/repository"
+	"github.com/AriSu2904/go-auth/internal/router"
 	"github.com/AriSu2904/go-auth/internal/service"
 	"log"
+	"net/http"
 )
 
 func main() {
@@ -23,14 +25,20 @@ func main() {
 	db := database.ConnectDB(loadedCfg.DBSource)
 	userRepository := repository.NewUserRepository(db)
 	authService := service.NewAuthService(userRepository)
-	_ = authService
+	userService := service.NewUserService(userRepository)
+	authHandler := handler.NewAuthHandler(authService)
+	userHandler := handler.NewUserHandler(userService)
 
-	defer func(db *sql.DB) {
-		err := db.Close()
-		if err != nil {
-			log.Fatal("Error closing the database: ", err)
-		}
-	}(db)
+	chiRouter := router.NewRouter(authHandler, userHandler)
 
-	log.Println("Service started...")
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: chiRouter,
+	}
+
+	log.Println("Starting service on port 8080...")
+
+	if err := server.ListenAndServe(); err != nil {
+		log.Fatal("Server failed to start:", err)
+	}
 }

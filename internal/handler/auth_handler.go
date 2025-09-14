@@ -1,0 +1,63 @@
+package handler
+
+import (
+	"encoding/json"
+	"errors"
+	"github.com/AriSu2904/go-auth/internal/dto"
+	"github.com/AriSu2904/go-auth/internal/service"
+	"github.com/AriSu2904/go-auth/internal/utils"
+	"net/http"
+)
+
+type AuthHandler interface {
+	Register(w http.ResponseWriter, r *http.Request)
+}
+
+type authHandler struct {
+	authService service.AuthService
+}
+
+func NewAuthHandler(authService service.AuthService) AuthHandler {
+	return &authHandler{authService: authService}
+}
+
+func (h *authHandler) Register(w http.ResponseWriter, r *http.Request) {
+	var requestBody dto.RegisterUserInput
+
+	err := json.NewDecoder(r.Body).Decode(&requestBody)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, "BAD_REQUEST",
+			"Invalid request body make sure you have all the required fields")
+		return
+	}
+
+	if requestBody.Email == "" || requestBody.Persona == "" || requestBody.Password == "" {
+		utils.WriteError(w, http.StatusBadRequest, "INVALID_REQUEST_BODY",
+			"Email, Persona, and Password cannot be empty")
+		return
+	}
+
+	user, err := h.authService.SignUp(r.Context(), &requestBody)
+
+	if err != nil {
+		if errors.Is(err, service.ErrUserExists) {
+			utils.WriteError(w, http.StatusConflict, "USER_ALREADY_EXISTS",
+				service.ErrUserExists.Error())
+			return
+		} else {
+			utils.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR",
+				"An unexpected error occurred")
+			return
+		}
+	}
+
+	response := map[string]interface{}{
+		"message": "Registration successful",
+		"data": map[string]string{
+			"email":   user.Email,
+			"persona": user.Persona,
+		},
+	}
+
+	utils.WriteJSON(w, http.StatusCreated, response)
+}
