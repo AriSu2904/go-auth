@@ -20,14 +20,15 @@ type UserService interface {
 
 type userService struct {
 	userRepository repository.UserRepository
+	logger         *slog.Logger
 }
 
-func NewUserService(userRepo repository.UserRepository) UserService {
-	return &userService{userRepository: userRepo}
+func NewUserService(userRepo repository.UserRepository, log *slog.Logger) UserService {
+	return &userService{userRepository: userRepo, logger: log}
 }
 
 func (s *userService) FindByPersona(ctx context.Context, persona *string) (*models.User, error) {
-	slog.Info("[UserService] executing find user by persona:", *persona)
+	s.logger.Info("executing find user by persona", "layer", "userService")
 
 	user, err := s.userRepository.FindByPersona(ctx, persona)
 
@@ -44,7 +45,7 @@ func (s *userService) FindByPersona(ctx context.Context, persona *string) (*mode
 }
 
 func (s *userService) FindByEmail(ctx context.Context, email *string) (*models.User, error) {
-	slog.Info("[UserService] executing find user by email:", *email)
+	s.logger.Info("executing find user by email", "layer", "userService")
 
 	user, err := s.userRepository.FindByEmail(ctx, email)
 

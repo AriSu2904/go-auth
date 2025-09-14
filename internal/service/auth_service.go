@@ -26,16 +26,17 @@ type AuthService interface {
 
 type authService struct {
 	userRepository repository.UserRepository
+	logger         *slog.Logger
 	config         *config.Config
 }
 
-func NewAuthService(userRepo repository.UserRepository, conf *config.Config) AuthService {
-	return &authService{userRepository: userRepo, config: conf}
+func NewAuthService(userRepo repository.UserRepository, log *slog.Logger, conf *config.Config) AuthService {
+	return &authService{userRepository: userRepo, logger: log, config: conf}
 }
 
 func (s *authService) SignUp(ctx context.Context,
 	input *dto.RegisterUserInput) (*models.User, error) {
-	slog.Info("[AuthService] executing signup request")
+	s.logger.Info("executing signup request", "layer", "authService")
 
 	email := input.Email
 	existingUser, err := s.userRepository.FindByEmail(ctx, &email)
@@ -80,7 +81,7 @@ func (s *authService) SignIn(ctx context.Context,
 	input *dto.LoginUserInput,
 	additionalHeader *dto.AdditionalHeader,
 ) (*models.TokenInfo, error) {
-	slog.Info("[AuthService] executing login request with id", input.UniqueId)
+	s.logger.Info("executing login request", "layer", "authService")
 
 	isUsingEmail := strings.Contains(input.UniqueId, "@")
 	var user *models.User

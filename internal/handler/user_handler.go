@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/AriSu2904/go-auth/internal/service"
 	"github.com/AriSu2904/go-auth/internal/utils"
-	"log"
+	"log/slog"
 	"net/http"
 )
 
@@ -14,17 +14,19 @@ type UserHandler interface {
 
 type userHandler struct {
 	userService service.UserService
+	logger      *slog.Logger
 }
 
-func NewUserHandler(userService service.UserService) UserHandler {
-	return &userHandler{userService: userService}
+func NewUserHandler(userService service.UserService, log *slog.Logger) UserHandler {
+	return &userHandler{userService: userService, logger: log}
 }
 
 func (h *userHandler) FindByQuery(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	persona := query.Get("persona")
 	email := query.Get("email")
-	log.Print("Incoming request with query params - persona: ", persona, ", email: ", email)
+
+	h.logger.Info("Process incoming find user request", "layer", "userHandler", "persona", persona, "email", email)
 
 	if len(persona) > 0 {
 		userPersona, err := h.userService.FindByPersona(r.Context(), &persona)

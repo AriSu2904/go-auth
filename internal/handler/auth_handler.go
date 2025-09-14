@@ -17,14 +17,15 @@ type AuthHandler interface {
 
 type authHandler struct {
 	authService service.AuthService
+	logger      *slog.Logger
 }
 
-func NewAuthHandler(authService service.AuthService) AuthHandler {
-	return &authHandler{authService: authService}
+func NewAuthHandler(authService service.AuthService, log *slog.Logger) AuthHandler {
+	return &authHandler{authService: authService, logger: log}
 }
 
 func (h *authHandler) Register(w http.ResponseWriter, r *http.Request) {
-	slog.Info("[AuthHandler] Process incoming registration request")
+	h.logger.Info("Process incoming registration request", "layer", "authHandler")
 
 	var requestBody dto.RegisterUserInput
 
@@ -67,7 +68,7 @@ func (h *authHandler) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *authHandler) Login(w http.ResponseWriter, r *http.Request) {
-	slog.Info("[AuthHandler] Process incoming login request")
+	h.logger.Info("Process incoming login request", "layer", "authHandler")
 
 	var payload dto.LoginUserInput
 

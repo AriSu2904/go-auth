@@ -8,7 +8,9 @@ import (
 	"github.com/AriSu2904/go-auth/internal/router"
 	"github.com/AriSu2904/go-auth/internal/service"
 	"log"
+	"log/slog"
 	"net/http"
+	"os"
 )
 
 func main() {
@@ -20,14 +22,16 @@ func main() {
 		log.Fatal("Cannot load config:", err)
 	}
 
-	database.MigrateSchema(loadedCfg.DBSource)
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
+	database.MigrateSchema(loadedCfg.DBSource)
 	db := database.ConnectDB(loadedCfg.DBSource)
-	userRepository := repository.NewUserRepository(db)
-	authService := service.NewAuthService(userRepository, loadedCfg)
-	userService := service.NewUserService(userRepository)
-	authHandler := handler.NewAuthHandler(authService)
-	userHandler := handler.NewUserHandler(userService)
+
+	userRepository := repository.NewUserRepository(db, logger)
+	authService := service.NewAuthService(userRepository, logger, loadedCfg)
+	userService := service.NewUserService(userRepository, logger)
+	authHandler := handler.NewAuthHandler(authService, logger)
+	userHandler := handler.NewUserHandler(userService, logger)
 
 	chiRouter := router.NewRouter(authHandler, userHandler)
 

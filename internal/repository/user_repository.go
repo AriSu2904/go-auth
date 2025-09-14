@@ -17,15 +17,16 @@ type UserRepository interface {
 }
 
 type userRepository struct {
-	DB *sql.DB
+	DB     *sql.DB
+	logger *slog.Logger
 }
 
-func NewUserRepository(db *sql.DB) UserRepository {
-	return &userRepository{DB: db}
+func NewUserRepository(db *sql.DB, log *slog.Logger) UserRepository {
+	return &userRepository{DB: db, logger: log}
 }
 
 func (userRepository *userRepository) Create(ctx context.Context, user *models.User) error {
-	slog.Info("[UserRepository] Creating new user with email: ", user.Email)
+	userRepository.logger.Info("Creating new user", "layer", "userRepository", "email", user.Email, "persona", user.Persona)
 
 	query := `INSERT INTO users (email, persona, password, role, status, is_verified, google_synchronized)
 			  VALUES ($1, $2, $3, $4, $5, $6, $7)`
@@ -41,7 +42,7 @@ func (userRepository *userRepository) Create(ctx context.Context, user *models.U
 }
 
 func (userRepository *userRepository) FindByEmail(ctx context.Context, email *string) (*models.User, error) {
-	slog.Info("[UserRepository] Finding user by email: ", *email)
+	userRepository.logger.Info("Finding user by email", "layer", "userRepository", "email", *email)
 
 	query := `SELECT id, first_name, last_name, email, persona, password, role, is_verified, google_synchronized, status, created_at, modified_at
 			  FROM users WHERE email = $1`
@@ -72,7 +73,7 @@ func (userRepository *userRepository) FindByEmail(ctx context.Context, email *st
 }
 
 func (userRepository *userRepository) FindByPersona(ctx context.Context, persona *string) (*models.User, error) {
-	slog.Info("[UserRepository] Finding user by persona: ", *persona)
+	userRepository.logger.Info("Find user by persona", "level", "userRepository", "persona", *persona)
 
 	query := `SELECT id, first_name, last_name, email, persona, password, role, is_verified, google_synchronized, status, created_at, modified_at
 			  FROM users WHERE persona = $1`
@@ -102,11 +103,13 @@ func (userRepository *userRepository) FindByPersona(ctx context.Context, persona
 	return &user, nil
 }
 
-func (userRepository *userRepository) FindById(ctx context.Context, email string) (*models.User, error) {
+func (userRepository *userRepository) FindById(ctx context.Context, id string) (*models.User, error) {
+	userRepository.logger.Info("Find user by Id", "layer", "userRepository", "id", id)
+
 	query := `SELECT id, first_name, last_name, email, persona, password, role, is_verified, google_synchronized, status, created_at, modified_at
 			  FROM users WHERE id = $1`
 
-	row := userRepository.DB.QueryRowContext(ctx, query, email)
+	row := userRepository.DB.QueryRowContext(ctx, query, id)
 
 	var user models.User
 	err := row.Scan(
