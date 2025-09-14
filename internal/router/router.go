@@ -12,6 +12,7 @@ func NewRouter(authHandler handler.AuthHandler, userHandler handler.UserHandler)
 
 	r.Route("/auth", func(r chi.Router) {
 		r.Post("/register", authHandler.Register)
+		r.Post("/login", authHandler.Login)
 	})
 
 	r.Route("/user", func(r chi.Router) {

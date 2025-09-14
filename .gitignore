@@ -38,3 +38,5 @@ desktop.ini
 *.log
 coverage.out
 profile.out
+private.pem
+public.pem

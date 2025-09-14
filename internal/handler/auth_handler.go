@@ -11,6 +11,7 @@ import (
 
 type AuthHandler interface {
 	Register(w http.ResponseWriter, r *http.Request)
+	Login(w http.ResponseWriter, r *http.Request)
 }
 
 type authHandler struct {
@@ -60,4 +61,42 @@ func (h *authHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusCreated, response)
+}
+
+func (h *authHandler) Login(w http.ResponseWriter, r *http.Request) {
+	var payload dto.LoginUserInput
+
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, "BAD_REQUEST",
+			"Invalid request body make sure you have email/persona and password")
+		return
+	}
+
+	if payload.UniqueId == "" || payload.Password == "" {
+		utils.WriteError(w, http.StatusBadRequest, "INVALID_REQUEST_BODY",
+			"Email/Persona and Password cannot be empty")
+		return
+	}
+
+	tokenInfo, err := h.authService.SignIn(r.Context(), &payload, nil)
+
+	if err != nil {
+		if errors.Is(err, service.ErrInvalidCredentials) {
+			utils.WriteError(w, http.StatusUnauthorized, "INVALID_CREDENTIALS",
+				"Email/Persona or Password is incorrect")
+			return
+		} else {
+			utils.WriteError(w, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR",
+				"An unexpected error occurred")
+			return
+		}
+	}
+
+	response := map[string]interface{}{
+		"message": "Login successful",
+		"data":    tokenInfo,
+	}
+
+	utils.WriteJSON(w, http.StatusOK, response)
 }

@@ -24,7 +24,7 @@ func main() {
 
 	db := database.ConnectDB(loadedCfg.DBSource)
 	userRepository := repository.NewUserRepository(db)
-	authService := service.NewAuthService(userRepository)
+	authService := service.NewAuthService(userRepository, loadedCfg)
 	userService := service.NewUserService(userRepository)
 	authHandler := handler.NewAuthHandler(authService)
 	userHandler := handler.NewUserHandler(userService)
