@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"github.com/AriSu2904/go-auth/internal/config"
 	"github.com/AriSu2904/go-auth/internal/database"
+	"github.com/AriSu2904/go-auth/internal/repository"
+	"github.com/AriSu2904/go-auth/internal/service"
 	"log"
 )
 
@@ -19,6 +21,9 @@ func main() {
 	database.MigrateSchema(loadedCfg.DBSource)
 
 	db := database.ConnectDB(loadedCfg.DBSource)
+	userRepository := repository.NewUserRepository(db)
+	authService := service.NewAuthService(userRepository)
+	_ = authService
 
 	defer func(db *sql.DB) {
 		err := db.Close()

@@ -15,15 +15,15 @@ type UserRepository interface {
 	FindById(ctx context.Context, id string) (*models.User, error)
 }
 
-type UserRepositoryImpl struct {
+type userRepository struct {
 	DB *sql.DB
 }
 
 func NewUserRepository(db *sql.DB) UserRepository {
-	return &UserRepositoryImpl{DB: db}
+	return &userRepository{DB: db}
 }
 
-func (userRepository *UserRepositoryImpl) Create(ctx context.Context, user *models.User) error {
+func (userRepository *userRepository) Create(ctx context.Context, user *models.User) error {
 	query := `INSERT INTO users (email, persona, password, role, is_verified, google_synchronized, status, created_at, modified_at)
 			  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
 
@@ -37,7 +37,7 @@ func (userRepository *UserRepositoryImpl) Create(ctx context.Context, user *mode
 	return err
 }
 
-func (userRepository *UserRepositoryImpl) FindByEmail(ctx context.Context, email string) (*models.User, error) {
+func (userRepository *userRepository) FindByEmail(ctx context.Context, email string) (*models.User, error) {
 	query := `SELECT id, first_name, last_name, email, persona, password, role, is_verified, google_synchronized, status, created_at, modified_at
 			  FROM users WHERE email = $1`
 
@@ -69,7 +69,7 @@ func (userRepository *UserRepositoryImpl) FindByEmail(ctx context.Context, email
 	return &user, nil
 }
 
-func (userRepository *UserRepositoryImpl) FindByPersona(ctx context.Context, email string) (*models.User, error) {
+func (userRepository *userRepository) FindByPersona(ctx context.Context, email string) (*models.User, error) {
 	query := `SELECT id, first_name, last_name, email, persona, password, role, is_verified, google_synchronized, status, created_at, modified_at
 			  FROM users WHERE persona = $1`
 
@@ -101,7 +101,7 @@ func (userRepository *UserRepositoryImpl) FindByPersona(ctx context.Context, ema
 	return &user, nil
 }
 
-func (userRepository *UserRepositoryImpl) FindById(ctx context.Context, email string) (*models.User, error) {
+func (userRepository *userRepository) FindById(ctx context.Context, email string) (*models.User, error) {
 	query := `SELECT id, first_name, last_name, email, persona, password, role, is_verified, google_synchronized, status, created_at, modified_at
 			  FROM users WHERE id = $1`
 
