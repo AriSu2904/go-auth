@@ -28,8 +28,9 @@ func NewAuthService(userRepo repository.UserRepository) AuthService {
 }
 
 func (s *authService) SignUp(ctx context.Context, input *dto.RegisterUserInput) (*models.User, error) {
-	existingUser, err := s.userRepository.FindByEmail(ctx, input.Email)
-	if err != nil {
+	email := input.Email
+	existingUser, err := s.userRepository.FindByEmail(ctx, &email)
+	if err != nil && err.Error() != "sql: no rows in result set" {
 		log.Println("Error checking existing user by email:", err)
 
 		return nil, err

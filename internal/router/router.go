@@ -15,7 +15,7 @@ func NewRouter(authHandler handler.AuthHandler, userHandler handler.UserHandler)
 	})
 
 	r.Route("/user", func(r chi.Router) {
-		r.Get("/", userHandler.FindByPersona)
+		r.Get("/", userHandler.FindByQuery)
 	})
 
 	return r

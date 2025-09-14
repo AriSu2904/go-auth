@@ -10,7 +10,7 @@ import (
 
 type UserRepository interface {
 	Create(ctx context.Context, user *models.User) error
-	FindByEmail(ctx context.Context, email string) (*models.User, error)
+	FindByEmail(ctx context.Context, email *string) (*models.User, error)
 	FindByPersona(ctx context.Context, persona *string) (*models.User, error)
 	FindById(ctx context.Context, id string) (*models.User, error)
 }
@@ -37,7 +37,7 @@ func (userRepository *userRepository) Create(ctx context.Context, user *models.U
 	return err
 }
 
-func (userRepository *userRepository) FindByEmail(ctx context.Context, email string) (*models.User, error) {
+func (userRepository *userRepository) FindByEmail(ctx context.Context, email *string) (*models.User, error) {
 	query := `SELECT id, first_name, last_name, email, persona, password, role, is_verified, google_synchronized, status, created_at, modified_at
 			  FROM users WHERE email = $1`
 
@@ -60,9 +60,6 @@ func (userRepository *userRepository) FindByEmail(ctx context.Context, email str
 	)
 
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
 		return nil, err
 	}
 
