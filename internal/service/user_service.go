@@ -6,6 +6,7 @@ import (
 	"github.com/AriSu2904/go-auth/internal/models"
 	"github.com/AriSu2904/go-auth/internal/repository"
 	"log"
+	"log/slog"
 )
 
 var (
@@ -26,6 +27,8 @@ func NewUserService(userRepo repository.UserRepository) UserService {
 }
 
 func (s *userService) FindByPersona(ctx context.Context, persona *string) (*models.User, error) {
+	slog.Info("[UserService] executing find user by persona:", *persona)
+
 	user, err := s.userRepository.FindByPersona(ctx, persona)
 
 	if err != nil {
@@ -41,6 +44,8 @@ func (s *userService) FindByPersona(ctx context.Context, persona *string) (*mode
 }
 
 func (s *userService) FindByEmail(ctx context.Context, email *string) (*models.User, error) {
+	slog.Info("[UserService] executing find user by email:", *email)
+
 	user, err := s.userRepository.FindByEmail(ctx, email)
 
 	if err != nil {

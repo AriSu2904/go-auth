@@ -6,6 +6,7 @@ import (
 	"github.com/AriSu2904/go-auth/internal/dto"
 	"github.com/AriSu2904/go-auth/internal/service"
 	"github.com/AriSu2904/go-auth/internal/utils"
+	"log/slog"
 	"net/http"
 )
 
@@ -23,6 +24,8 @@ func NewAuthHandler(authService service.AuthService) AuthHandler {
 }
 
 func (h *authHandler) Register(w http.ResponseWriter, r *http.Request) {
+	slog.Info("[AuthHandler] Process incoming registration request")
+
 	var requestBody dto.RegisterUserInput
 
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
@@ -64,6 +67,8 @@ func (h *authHandler) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *authHandler) Login(w http.ResponseWriter, r *http.Request) {
+	slog.Info("[AuthHandler] Process incoming login request")
+
 	var payload dto.LoginUserInput
 
 	err := json.NewDecoder(r.Body).Decode(&payload)

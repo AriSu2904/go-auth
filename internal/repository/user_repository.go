@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/AriSu2904/go-auth/internal/models"
+	"log/slog"
 	"time"
 )
 
@@ -24,6 +25,8 @@ func NewUserRepository(db *sql.DB) UserRepository {
 }
 
 func (userRepository *userRepository) Create(ctx context.Context, user *models.User) error {
+	slog.Info("[UserRepository] Creating new user with email: ", user.Email)
+
 	query := `INSERT INTO users (email, persona, password, role, status, is_verified, google_synchronized)
 			  VALUES ($1, $2, $3, $4, $5, $6, $7)`
 
@@ -38,10 +41,12 @@ func (userRepository *userRepository) Create(ctx context.Context, user *models.U
 }
 
 func (userRepository *userRepository) FindByEmail(ctx context.Context, email *string) (*models.User, error) {
+	slog.Info("[UserRepository] Finding user by email: ", *email)
+
 	query := `SELECT id, first_name, last_name, email, persona, password, role, is_verified, google_synchronized, status, created_at, modified_at
 			  FROM users WHERE email = $1`
 
-	row := userRepository.DB.QueryRowContext(ctx, query, email)
+	row := userRepository.DB.QueryRowContext(ctx, query, *email)
 
 	var user models.User
 	err := row.Scan(
@@ -67,10 +72,12 @@ func (userRepository *userRepository) FindByEmail(ctx context.Context, email *st
 }
 
 func (userRepository *userRepository) FindByPersona(ctx context.Context, persona *string) (*models.User, error) {
+	slog.Info("[UserRepository] Finding user by persona: ", *persona)
+
 	query := `SELECT id, first_name, last_name, email, persona, password, role, is_verified, google_synchronized, status, created_at, modified_at
 			  FROM users WHERE persona = $1`
 
-	row := userRepository.DB.QueryRowContext(ctx, query, persona)
+	row := userRepository.DB.QueryRowContext(ctx, query, *persona)
 
 	var user models.User
 	err := row.Scan(

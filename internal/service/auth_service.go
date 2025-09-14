@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/AriSu2904/go-auth/internal/config"
 	"log"
+	"log/slog"
 	"strings"
 
 	"github.com/AriSu2904/go-auth/internal/dto"
@@ -34,16 +35,18 @@ func NewAuthService(userRepo repository.UserRepository, conf *config.Config) Aut
 
 func (s *authService) SignUp(ctx context.Context,
 	input *dto.RegisterUserInput) (*models.User, error) {
+	slog.Info("[AuthService] executing signup request")
+
 	email := input.Email
 	existingUser, err := s.userRepository.FindByEmail(ctx, &email)
 	if err != nil && err.Error() != "sql: no rows in result set" {
-		log.Println("Error checking existing user by email:", err)
+		slog.Error("Error checking existing user by email:", err)
 
 		return nil, err
 	}
 
 	if existingUser != nil {
-		log.Println("Error user already exist", err)
+		slog.Warn("Error user already exist", err)
 
 		return nil, ErrUserExists
 	}
@@ -65,7 +68,7 @@ func (s *authService) SignUp(ctx context.Context,
 
 	err = s.userRepository.Create(ctx, newUser)
 	if err != nil && err.Error() != "sql: no rows in result set" {
-		log.Println("Error occurred when create new user:", err)
+		slog.Error("Error creating new user:", err)
 
 		return nil, err
 	}
@@ -77,6 +80,8 @@ func (s *authService) SignIn(ctx context.Context,
 	input *dto.LoginUserInput,
 	additionalHeader *dto.AdditionalHeader,
 ) (*models.TokenInfo, error) {
+	slog.Info("[AuthService] executing login request with id", input.UniqueId)
+
 	isUsingEmail := strings.Contains(input.UniqueId, "@")
 	var user *models.User
 
