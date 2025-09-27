@@ -25,9 +25,10 @@ type AuthService interface {
 }
 
 type authService struct {
-	userRepository repository.UserRepository
-	logger         *slog.Logger
-	config         *config.Config
+	userRepository    repository.UserRepository
+	sessionRepository repository.SessionRepository
+	logger            *slog.Logger
+	config            *config.Config
 }
 
 func NewAuthService(userRepo repository.UserRepository, log *slog.Logger, conf *config.Config) AuthService {

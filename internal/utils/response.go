@@ -2,7 +2,9 @@ package utils
 
 import (
 	"encoding/json"
+	"github.com/go-playground/validator/v10"
 	"net/http"
+	"strings"
 )
 
 func WriteJSON(w http.ResponseWriter, status int, data interface{}) {
@@ -23,4 +25,14 @@ func WriteError(w http.ResponseWriter, status int, code, message string) {
 		},
 	}
 	WriteJSON(w, status, errorResponse)
+}
+
+func WriteValidationError(w http.ResponseWriter, err error) {
+	var errorMessages []string
+	for _, err := range err.(validator.ValidationErrors) {
+		errorMessage := "Field '" + err.Field() + "' failed on the '" + err.Tag() + "' tag"
+		errorMessages = append(errorMessages, errorMessage)
+	}
+	WriteError(w, http.StatusBadRequest, "BAD_REQUEST",
+		"Invalid request body: "+strings.Join(errorMessages, "; "))
 }

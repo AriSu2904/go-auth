@@ -1,17 +1,17 @@
 package dto
 
 type RegisterUserInput struct {
-	Email    string `json:"email" binding:"required"`
-	Persona  string `json:"persona" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Email    string `validate:"email" json:"email"`
+	Persona  string `validate:"alphanum,min=3,max=30" json:"persona"`
+	Password string `validate:"min=8,max=100" json:"password"`
 }
 
 type LoginUserInput struct {
-	UniqueId string `json:"uniqueId" binding:"required"` // can be email or persona
-	Password string `json:"password" binding:"required"`
+	UniqueId string `validate:"required" json:"uniqueId"`
+	Password string `validate:"required" json:"password"`
 }
 
 type AdditionalHeader struct {
-	DeviceId   string
-	DeviceInfo string
+	DeviceId   string `validate:"required" json:"deviceId"`
+	DeviceInfo string `validate:"required" json:"deviceInfo"`
 }

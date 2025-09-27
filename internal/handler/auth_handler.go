@@ -6,6 +6,7 @@ import (
 	"github.com/AriSu2904/go-auth/internal/dto"
 	"github.com/AriSu2904/go-auth/internal/service"
 	"github.com/AriSu2904/go-auth/internal/utils"
+	"github.com/go-playground/validator/v10"
 	"log/slog"
 	"net/http"
 )
@@ -18,10 +19,11 @@ type AuthHandler interface {
 type authHandler struct {
 	authService service.AuthService
 	logger      *slog.Logger
+	validate    *validator.Validate
 }
 
 func NewAuthHandler(authService service.AuthService, log *slog.Logger) AuthHandler {
-	return &authHandler{authService: authService, logger: log}
+	return &authHandler{authService: authService, logger: log, validate: validator.New()}
 }
 
 func (h *authHandler) Register(w http.ResponseWriter, r *http.Request) {
@@ -31,14 +33,14 @@ func (h *authHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
-		utils.WriteError(w, http.StatusBadRequest, "BAD_REQUEST",
+		utils.WriteError(w, http.StatusBadRequest, "INVALID_REQUEST_BODY",
 			"Invalid request body make sure you have all the required fields")
 		return
 	}
 
-	if requestBody.Email == "" || requestBody.Persona == "" || requestBody.Password == "" {
-		utils.WriteError(w, http.StatusBadRequest, "INVALID_REQUEST_BODY",
-			"Email, Persona, and Password cannot be empty")
+	err = h.validate.Struct(requestBody)
+	if err != nil {
+		utils.WriteValidationError(w, err)
 		return
 	}
 
@@ -79,9 +81,9 @@ func (h *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if payload.UniqueId == "" || payload.Password == "" {
-		utils.WriteError(w, http.StatusBadRequest, "INVALID_REQUEST_BODY",
-			"Email/Persona and Password cannot be empty")
+	err = h.validate.Struct(payload)
+	if err != nil {
+		utils.WriteValidationError(w, err)
 		return
 	}
 
